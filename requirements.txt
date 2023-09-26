@@ -1,0 +1,4 @@
+Flask
+translators
+flask_redis
+uWSGI

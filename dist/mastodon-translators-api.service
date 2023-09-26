@@ -1,0 +1,12 @@
+[Unit]
+Description=Mastodon Translators API
+After=network.target
+
+[Service]
+User=mastodon
+Group=mastodon
+WorkingDirectory=/home/mastodon/mastodon-translators-api
+ExecStart=/usr/bin/uwsgi --ini uwsgi.ini
+
+[Install]
+WantedBy=multi-user.target
