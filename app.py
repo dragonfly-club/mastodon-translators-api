@@ -4,6 +4,7 @@
 
 from hashlib import md5
 import random
+import re
 
 from flask import Flask, request
 from flask_redis import FlaskRedis
@@ -38,16 +39,18 @@ def translate():
 
     source = 'zh-CN' if source == 'zh' else source
 
-    def _translate(html):
-        hash = md5(html.encode('utf-8')).hexdigest()
-        key = 'html:to_{}:{}'.format(target, hash)
+    def _translate(content):
+        is_html = re.match(r'^<.*>.*<.*>$', content.strip())
+        hash = md5(content.encode('utf-8')).hexdigest()
+        key = '{}:to_{}:{}'.format('html' if is_html else 'text', target, hash)
 
         cached_result = rc.hgetall(key)
 
         if not cached_result:
             if target in languages and target != 'auto':
                 translator = random.choice(translators)
-                result = {'translatedText': ts.translate_html(html, translator, source, target), 'translator': translator}
+                backend = ts.translate_html if is_html else ts.translate_text
+                result = {'translatedText': backend(content, translator, source, target), 'translator': translator}
                 rc.hset(key, mapping=result)
                 return result
             else:
