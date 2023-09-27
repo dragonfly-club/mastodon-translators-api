@@ -12,7 +12,7 @@ from flask_redis import FlaskRedis
 import translators as ts
 
 languages = ['de', 'en', 'es', 'fr', 'hi', 'it', 'jp', 'kr', 'pt', 'ru', 'tr', 'vi', 'zh']
-translators = ['deepl', 'google', 'bing', 'modernmt', 'lingvanex', 'itranslate', 'reverso', 'papago']
+translators = ['google', 'bing', 'lingvanex', 'itranslate', 'reverso', 'papago']
 
 app = Flask(__name__)
 app.config['REDIS_URL'] = 'redis://:@localhost:6379/0'
