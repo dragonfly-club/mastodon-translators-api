@@ -2,3 +2,4 @@ Flask
 translators
 flask_redis
 uWSGI
+fasttext-langdetect
