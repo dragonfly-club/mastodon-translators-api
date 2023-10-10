@@ -31,12 +31,18 @@ def translate():
         query = request.args.get('q')
         source = request.args.get('source')
         target = request.args.get('target')
+        ak = request.args.get('api_key')
     elif request.method == 'POST':
         query = request.get_json().get('q')
         source = request.get_json().get('source')
         target = request.get_json().get('target')
+        ak = request.get_json().get('api_key')
     else:
         return {'error': {'code': 405, 'msg': 'Method Not Allowed'}}, 405
+
+    if os.getenv('API_KEY'):
+        if ak != os.environ['API_KEY']:
+            return {'error': {'code': 403, 'msg': 'Invalid API key'}}, 403
 
     if not (query and source and target):
         return {'error': {'code': 400, 'msg': 'Bad Request'}}, 400
