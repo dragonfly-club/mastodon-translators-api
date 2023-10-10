@@ -38,14 +38,14 @@ def translate():
         target = request.get_json().get('target')
         ak = request.get_json().get('api_key')
     else:
-        return {'error': {'code': 405, 'msg': 'Method Not Allowed'}}, 405
+        return {'error': 'Method Not Allowed'}, 405
 
     if os.getenv('API_KEY'):
         if ak != os.environ['API_KEY']:
-            return {'error': {'code': 403, 'msg': 'Invalid API key'}}, 403
+            return {'error': 'Invalid API key'}, 403
 
     if not (query and source and target):
-        return {'error': {'code': 400, 'msg': 'Bad Request'}}, 400
+        return {'error': 'Missing parameters'}, 400
 
     source = 'zh-CN' if source == 'zh' else source
 
@@ -73,7 +73,7 @@ def translate():
                 rc.hset(key+':detected_lang', mapping=detectedLanguage)
                 return {**result, 'detectedLanguage': detectedLanguage}
             else:
-                return {'error': {'code': 400, 'msg': 'Unsupported Language'}}, 400
+                return {'error': 'Unsupported Language'}, 400
         else:
             detectedLanguage = rc.hgetall(key+':detected_lang')
             return {**cached_result, 'detectedLanguage': detectedLanguage}
@@ -89,9 +89,9 @@ def translate():
             _results['detectedLanguage'].append(_result['detectedLanguage'])
         return _results
     else:
-        return {'error': {'code': 400, 'msg': 'Invalid Input'}}, 400
+        return {'error': 'Invalid Input'}, 400
 
 # languages endpoint: not implemented
 @app.route('/languages')
 def get_languages():
-    return {'error': {'code': 501, 'msg': 'Not Implemented'}}, 501
+    return {'error': 'Not Implemented'}, 501
