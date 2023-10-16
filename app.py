@@ -91,7 +91,6 @@ def translate():
     else:
         return {'error': 'Invalid Input'}, 400
 
-# languages endpoint: not implemented
 @app.route('/languages')
 def get_languages():
-    return {'error': 'Not Implemented'}, 501
+    return [{ 'code': lang, 'name': lang, 'targets': languages} for lang in languages], 200
