@@ -13,7 +13,7 @@ from flask_redis import FlaskRedis
 import translators as ts
 from ftlangdetect import detect
 
-languages = ['de', 'en', 'es', 'fr', 'hi', 'it', 'jp', 'kr', 'pt', 'ru', 'tr', 'vi', 'zh-CN', 'zh-TW', 'zh-HK']
+languages = ['de', 'en', 'es', 'fr', 'hi', 'it', 'ja', 'ko', 'pt', 'ru', 'tr', 'vi', 'zh-CN', 'zh-TW', 'zh-HK']
 translators = ['google', 'bing', 'lingvanex', 'itranslate', 'reverso', 'papago']
 FORCE_LANG_DETECT = os.getenv('FORCE_LANG_DETECT')
 USE_DETECTED_LANG = os.getenv('USE_DETECTED_LANG')
