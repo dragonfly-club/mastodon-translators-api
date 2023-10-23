@@ -1,6 +1,7 @@
 # Mastodon Translators API
 
-![GitHub last commit](https://img.shields.io/github/last-commit/dragonfly-club/Mastodon-Translators-API)![GitHub release (latest by date)](https://img.shields.io/github/v/release/dragonfly-club/Mastodon-Translators-API)![GitHub](https://img.shields.io/github/license/dragonfly-club/Mastodon-Translators-API)![GitHub all releases](https://img.shields.io/github/downloads/dragonfly-club/Mastodon-Translators-API/total)![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/dragonfly-club/Mastodon-Translators-API)
+![GitHub last commit](https://img.shields.io/github/last-commit/dragonfly-club/Mastodon-Translators-API)![GitHub release (latest by date)](https://img.shields.io/github/v/release/dragonfly-club/Mastodon-Translators-API)![GitHub](https://img.shields.io/github/license/dragonfly-club/Mastodon-Translators-API)![GitHub all releases](https://img.shields.io/github/downloads/dragonfly-club/Mastodon-Translators-API/total)![Build Status](https://img.shields.io/github/actions/workflow/status/dragonfly-club/mastodon-translators-api/cd.yml
+)
 
 [Python Translators Lib](https://github.com/UlionTse/translators) wrapped in HTTP API as a drop-in replacement for translation backend in Mastodon
 
@@ -13,7 +14,8 @@ Inspired by [ybw2016v/mkts](https://github.com/ybw2016v/mkts) and part of the co
 ### /translate (GET,POST)
 
 ```bash
-curl -X POST localhost:5000/translate -H 'Content-Type: application/json' -d '{"source":"auto","target":"en","q":["<p>高考加油</p>"]}'
+curl -X POST localhost:5000/translate -H 'Content-Type: application/json' -d '{"source":"auto","tar
+get":"en","q":["长毛象", "你好，世界"], "api_key": "myPassword"}'
 ```
 
 This endpoint can be called in both `POST` and `GET`, the request body should contain the followings:
@@ -21,10 +23,11 @@ This endpoint can be called in both `POST` and `GET`, the request body should co
 - `source`: the original language of the input, can be set to `auto`
 - `target`: the target language
 - `q`: input text for translation (needs to be wrapped in HTML, can be a string or an array/list)
+- `api_key`(optional): user defined api key
 
 And a successful response is as in the following example:
 ```json
-{"translatedText":["<p>Cheer up for the college entrance examination</p>"],"translator":"baidu"}
+{"detectedLanguage":[{"confidence":11.0,"language":"en"},{"confidence":11.0,"language":"en"}],"translatedText":["mammoth","Hello, world"],"translator":["google","lingvanex"]}
 ```
 
 ## Deployment (Local)
@@ -53,21 +56,22 @@ Make sure you have docker or podman installed.
 
 ### Procedures
 
-Clone this repo. Build application image. Run your container. Enjoy!
+Pull [`dragonflyclub/mastodon-translators-api:latest`](https://hub.docker.com/r/dragonflyclub/mastodon-translators-api)(Built by [GitHub Actions](https://github.com/dragonfly-club/mastodon-translators-api/blob/main/.github/workflows/cd.yml)). Start your container. Enjoy!
 
 ```bash
-git clone https://github.com/dragonfly-club/Mastodon-Translators-API.git Mastodon-Translators-API
-cd Mastodon-Translators-API
-podman build -t mastodon-translators-api .
+podman pull docker.io/dragonflyclub/mastodon-translators-api:latest
 podman volume create mta-redis
-podman run --name=mastodon-translators-api -p 127.0.0.1:5000:5000 -v mta_redis:/var/lib/redis -d --rm localhost/mastodon-translators-api:latest
+podman run --name=mastodon-translators-api -e API_KEY=myPassword -p 127.0.0.1:5000:5000 -v mta_redis:/var/lib/redis -d --rm docker.io/dragonflyclub/mastodon-translators-api:latest
 ``````
 
 ## Usage
 
 Open up your Mastodon instance's `.env.production` and append the following line:
 
-`LIBRE_TRANSLATE_ENDPOINT=http://localhost:5002`
+```yaml
+LIBRE_TRANSLATE_ENDPOINT=http://localhost:5002
+LIBRE_TRANSLATE_API_KEY=8848
+```
 
 And that's it! This makes no changes to your server's code structure and is 100% safe to use.
 

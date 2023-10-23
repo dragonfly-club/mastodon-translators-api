@@ -1,5 +1,5 @@
 # file originally from https://github.com/ybw2016v/mkts/blob/master/docker/api/api.py by ybw2016v
-# license: GPL-3.0 license
+# license: AGPL-3.0 license
 # author: holgerhuo
 
 import os
