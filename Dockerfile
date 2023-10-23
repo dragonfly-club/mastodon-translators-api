@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3.11
 WORKDIR /app
 
 COPY ./requirements.txt ./
@@ -9,7 +9,9 @@ COPY ./app.py .
 COPY ./entrypoint.sh .
 COPY ./uwsgi.ini .
 
-RUN useradd -u 1000 mastodon --no-create-home
+ARG UID=1000
+
+RUN useradd -u $UID mastodon --no-create-home
 RUN chown mastodon:mastodon .
 
 ENTRYPOINT ["bash", "./entrypoint.sh"]
