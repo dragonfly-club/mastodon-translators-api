@@ -13,7 +13,7 @@ from flask_redis import FlaskRedis
 import translators as ts
 from ftlangdetect import detect
 
-languages = ['de', 'en', 'es', 'fr', 'hi', 'it', 'jp', 'kr', 'pt', 'ru', 'tr', 'vi', 'zh']
+languages = ['de', 'en', 'es', 'fr', 'hi', 'it', 'jp', 'kr', 'pt', 'ru', 'tr', 'vi', 'zh-CN', 'zh-TW', 'zh-HK']
 translators = ['google', 'bing', 'lingvanex', 'itranslate', 'reverso', 'papago']
 FORCE_LANG_DETECT = os.getenv('FORCE_LANG_DETECT')
 USE_DETECTED_LANG = os.getenv('USE_DETECTED_LANG')
@@ -48,6 +48,7 @@ def translate():
         return {'error': 'Missing parameters'}, 400
 
     source = 'zh-CN' if source == 'zh' else source
+    target = 'zh-CN' if target == 'zh' else target
 
     def _translate(content):
         is_html = re.match(r'^<.*>.*<.*>$', content.strip())
