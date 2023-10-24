@@ -1,5 +1,5 @@
-Flask
-translators
-flask_redis
-uWSGI
-fasttext-langdetect
+Flask==3.0.0
+flask-redis==0.4.0
+translators==5.8.7
+uWSGI==2.0.22
+fasttext-langdetect==1.0.5
