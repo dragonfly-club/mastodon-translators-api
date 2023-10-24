@@ -30,8 +30,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=dragonflyclub/mastodon-translators-app:buildcache
+          cache-to: type=registry,ref=dragonflyclub/mastodon-translators-app:buildcache,mode=max
       - name: Update repo description
         uses: peter-evans/dockerhub-description@v3
         with:
