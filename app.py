@@ -94,4 +94,4 @@ def translate():
 
 @app.route('/languages')
 def get_languages():
-    return [{ 'code': lang, 'name': lang, 'targets': languages} for lang in languages], 200
+    return [{ 'code': lang, 'name': lang, 'targets': [l for l in languages if l != lang]} for lang in languages], 200
