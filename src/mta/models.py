@@ -42,7 +42,6 @@ class BackendHealth(TypedDict):
 
 class IndexResponse(TypedDict):
     name: str
-    version: str
     backends: list[str]
 
 

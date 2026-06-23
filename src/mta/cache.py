@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from threading import Lock
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 K = TypeVar("K")
 V = TypeVar("V")
 
 
-class LRUCache(Generic[K, V]):
+class LRUCache[K, V]:
     def __init__(self, maxsize: int) -> None:
         if maxsize < 1:
             raise ValueError("maxsize must be positive")

@@ -3,7 +3,7 @@ name = "mastodon-translators-api"
 version = "0.2.0"
 description = "LibreTranslate-compatible API for Mastodon powered by translators"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
   "fastapi>=0.138.0,<1.0.0",
   "langdetect>=1.0.9,<2.0.0",
@@ -43,7 +43,7 @@ ignore = ["B008"]
 testpaths = ["tests"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 strict = true
 warn_unreachable = true
 files = ["src", "tests"]

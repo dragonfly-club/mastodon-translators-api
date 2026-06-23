@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from typing import Protocol, TypeAlias, cast
+from typing import Protocol, cast
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
@@ -20,9 +20,9 @@ from mta.models import (
 from mta.router import BackendRouter, UnsupportedLanguagePairError, normalize_language
 from mta.settings import Settings
 
-FormPayload: TypeAlias = dict[str, str | int | list[str]]
-JsonPayload: TypeAlias = dict[str, object]
-TranslateCache: TypeAlias = LRUCache[tuple[str, str, str, str], tuple[str, DetectedLanguage]]
+type FormPayload = dict[str, str | int | list[str]]
+type JsonPayload = dict[str, object]
+type TranslateCache = LRUCache[tuple[str, str, str, str], tuple[str, DetectedLanguage]]
 
 
 class RouterLike(Protocol):

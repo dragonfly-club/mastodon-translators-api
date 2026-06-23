@@ -49,7 +49,7 @@ Returns service status, cache stats, and backend health summary.
 ## Deployment (Local)
 
 ### Dependencies
-Make sure you have Python 3.11+ and [`uv`](https://docs.astral.sh/uv/) installed.
+Make sure you have Python 3.13+ and [`uv`](https://docs.astral.sh/uv/) installed.
 
 ### Procedures
 

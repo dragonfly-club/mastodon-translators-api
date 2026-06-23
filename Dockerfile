@@ -1,4 +1,4 @@
-FROM python:3.11-slim AS builder
+FROM python:3.13-slim AS builder
 COPY --from=ghcr.io/astral-sh/uv:0.11.23 /uv /uvx /bin/
 
 ENV UV_COMPILE_BYTECODE=1 \
@@ -15,7 +15,7 @@ COPY src ./src
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable
 
-FROM python:3.11-slim AS runtime
+FROM python:3.13-slim AS runtime
 
 ENV PATH="/app/.venv/bin:$PATH"
 WORKDIR /app
