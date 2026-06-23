@@ -1,17 +1,27 @@
-FROM python:3.11
+FROM python:3.11-slim AS builder
+COPY --from=ghcr.io/astral-sh/uv:0.11.23 /uv /uvx /bin/
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=never
+
 WORKDIR /app
 
-COPY ./requirements.txt ./
-RUN pip install -r requirements.txt 
-RUN apt update && apt install redis nodejs sudo -y
+COPY pyproject.toml uv.lock README.md ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-install-project --no-editable
 
-COPY ./app.py .
-COPY ./entrypoint.sh .
-COPY ./uwsgi.ini .
+COPY src ./src
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-editable
 
-ARG UID=1000
+FROM python:3.11-slim AS runtime
 
-RUN useradd -u $UID mastodon --no-create-home
-RUN chown mastodon:mastodon .
+ENV PATH="/app/.venv/bin:$PATH"
+WORKDIR /app
 
-ENTRYPOINT ["bash", "./entrypoint.sh"]
+COPY --from=builder /app/.venv /app/.venv
+
+EXPOSE 5000
+
+CMD ["mastodon-translators-api", "--host", "0.0.0.0", "--port", "5000"]

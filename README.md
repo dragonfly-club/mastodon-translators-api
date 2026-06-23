@@ -3,50 +3,61 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/dragonfly-club/Mastodon-Translators-API)![GitHub release (latest by date)](https://img.shields.io/github/v/release/dragonfly-club/Mastodon-Translators-API)![GitHub](https://img.shields.io/github/license/dragonfly-club/Mastodon-Translators-API)![GitHub all releases](https://img.shields.io/github/downloads/dragonfly-club/Mastodon-Translators-API/total)![Build Status](https://img.shields.io/github/actions/workflow/status/dragonfly-club/mastodon-translators-api/cd.yml
 )
 
-[Python Translators Lib](https://github.com/UlionTse/translators) wrapped in HTTP API as a drop-in replacement for translation backend in Mastodon
+[Python Translators Lib](https://github.com/UlionTse/translators) wrapped in a LibreTranslate-compatible HTTP API for Mastodon.
 
-This API provides similar functionalities to the one that [LibreTranslate](https://libretranslate.com/) provides, but using external translation providers.
+This service exposes the endpoints Mastodon needs from LibreTranslate while routing requests across a curated pool of free `translators` backends. It keeps a process-local in-memory cache for repeated requests and retries on backend failure.
 
 Inspired by [ybw2016v/mkts](https://github.com/ybw2016v/mkts) and part of the code from [ybw2016v/mkts](https://github.com/ybw2016v/mkts).
 
 ## API Usages
 
-### /translate (GET,POST)
+### `POST /translate`
 
 ```bash
-curl -X POST localhost:5000/translate -H 'Content-Type: application/json' -d '{"source":"auto","tar
-get":"en","q":["长毛象", "你好，世界"], "api_key": "myPassword"}'
+curl -X POST http://localhost:5000/translate \
+  -H 'Content-Type: application/json' \
+  -d '{"source":"auto","target":"en","q":["长毛象","你好，世界"],"api_key":"myPassword"}'
 ```
 
-This endpoint can be called in both `POST` and `GET`, the request body should contain the followings:
+The request body accepts:
 
 - `source`: the original language of the input, can be set to `auto`
 - `target`: the target language
-- `q`: input text for translation (needs to be wrapped in HTML, can be a string or an array/list)
-- `api_key`(optional): user defined api key
+- `q`: input text for translation, as a string or array
+- `format`: `text` or `html`, defaults to `text`
+- `api_key`: optional when `API_KEY` is configured on the server
 
-And a successful response is as in the following example:
+A successful response looks like:
 ```json
-{"detectedLanguage":[{"confidence":11.0,"language":"en"},{"confidence":11.0,"language":"en"}],"translatedText":["mammoth","Hello, world"],"translator":["google","lingvanex"]}
+{
+  "translatedText": ["mammoth", "Hello, world"],
+  "detectedLanguage": [
+    {"language": "zh-CN", "confidence": 98.7},
+    {"language": "zh-CN", "confidence": 99.1}
+  ]
+}
 ```
+
+### `GET /languages`
+
+Returns the currently reachable language matrix derived from the configured backend pool.
+
+### `GET /health`
+
+Returns service status, cache stats, and backend health summary.
 
 ## Deployment (Local)
 
 ### Dependencies
-Make sure you have `python3`, `pip3` installed. To avoid conflicting environments, it is recommended to setup using virtualenv or docker.
-
-You also need `uWSGI` for the backend server. Feel free to use other backends.
+Make sure you have Python 3.11+ and [`uv`](https://docs.astral.sh/uv/) installed.
 
 ### Procedures
-
-Create a new user. Clone this repo. Copy dist files. Start your server. Enjoy!
 
 ```bash
 git clone https://github.com/dragonfly-club/Mastodon-Translators-API.git Mastodon-Translators-API
 cd Mastodon-Translators-API
-pip3 install -r requirements.txt
-cp /home/mastodon/Mastodon-Translators-API/dist/mastodon-translators-api.service /etc/systemd/system
-systemctl enable --now mastodon-translators-api
+uv sync
+uv run mastodon-translators-api --host 0.0.0.0 --port 5000
 ```
 
 ## Deployment (Docker)
@@ -60,40 +71,31 @@ Pull [`dragonflyclub/mastodon-translators-api:latest`](https://hub.docker.com/r/
 
 ```bash
 podman pull docker.io/dragonflyclub/mastodon-translators-api:latest
-podman volume create mta-redis
-podman run --name=mastodon-translators-api -e API_KEY=myPassword -p 127.0.0.1:5000:5000 -v mta_redis:/var/lib/redis -d --rm docker.io/dragonflyclub/mastodon-translators-api:latest
-``````
+podman run --name=mastodon-translators-api \
+  -e API_KEY=myPassword \
+  -p 127.0.0.1:5000:5000 \
+  -d --rm docker.io/dragonflyclub/mastodon-translators-api:latest
+```
+
+The Dockerfile uses a two-stage build with a locked `uv` environment and copies only the built virtualenv into the runtime image.
 
 ## Usage
 
 Open up your Mastodon instance's `.env.production` and append the following line:
 
 ```yaml
-LIBRE_TRANSLATE_ENDPOINT=http://localhost:5002
-LIBRE_TRANSLATE_API_KEY=8848
+LIBRE_TRANSLATE_ENDPOINT=http://127.0.0.1:5000
+LIBRE_TRANSLATE_API_KEY=myPassword
 ```
 
-And that's it! This makes no changes to your server's code structure and is 100% safe to use.
+## Configuration
 
-### Further Notes
-
-If you would like to show the exact provider used to translate the posts, you could apply the following patch into your mastodon code and restart mastodon-web:
-
-```diff
-diff --git a/app/lib/translation_service/libre_translate.rb b/app/lib/translation_service/libre_translate.rb
-index de43d7c88..1aaa84747 100644
---- a/app/lib/translation_service/libre_translate.rb
-+++ b/app/lib/translation_service/libre_translate.rb
-@@ -52,7 +52,7 @@ class TranslationService::LibreTranslate < TranslationService
-       Translation.new(
-         text: text,
-         detected_source_language: data.dig('detectedLanguage', index, 'language') || source_language,
--        provider: 'LibreTranslate'
-+        provider: data['translator'][index]
-       )
-     end
-   rescue Oj::ParseError
-```
+- `API_KEY`: optional API key expected in `/translate` requests
+- `BACKEND_ALLOWLIST`: comma-separated backend names from `translators`
+- `CACHE_MAXSIZE`: maximum number of in-memory cached items, default `10000`
+- `BACKEND_ATTEMPTS`: total backend attempts per translation item, default `3`
+- `BACKEND_COOLDOWN_SECONDS`: cooldown after backend failure, default `30`
+- `BACKEND_TIMEOUT_SECONDS`: timeout per backend attempt, default `15`
 
 ## Credits
 
