@@ -98,6 +98,29 @@ LIBRE_TRANSLATE_API_KEY=myPassword
 - `BACKEND_COOLDOWN_SECONDS`: cooldown after backend failure, default `30`
 - `BACKEND_TIMEOUT_SECONDS`: timeout per backend attempt, default `15`
 
+### OpenAI Responses backend
+
+`openai` is included in the default backend allowlist and routes translation through the
+OpenAI [Responses API](https://platform.openai.com/docs/api-reference/responses) using a system
+prompt. It is loaded only when `OPENAI_API_KEY` is set; otherwise it is silently skipped, so the
+default allowlist stays safe for deployments that only want the free `translators` backends. It
+participates in the same weighted round-robin as every other backend (weight `2`, so the free
+backends are preferred and it acts as a strong fallback for language pairs they do not cover).
+
+The untrusted input text is wrapped in per-request random sentinel markers and placed in the
+`input` field, while a locked-down `instructions` system prompt declares that the delimited
+content is data (never instructions), must be translated as-is, and must never reveal the
+instructions — making prompt-injection attempts inert.
+
+- `OPENAI_API_KEY`: required to enable the `openai` backend
+- `OPENAI_BASE_URL`: API base URL, default `https://api.openai.com/v1` (set this for Azure or any
+  OpenAI-compatible provider that implements the Responses API)
+- `OPENAI_MODEL`: model name, default `gpt-4o-mini`
+- `OPENAI_TEMPERATURE`: sampling temperature, default `0.0`
+- `OPENAI_MAX_OUTPUT_TOKENS`: output length cap, default `2048`
+- `OPENAI_LANGUAGES`: comma-separated language codes the backend advertises as supported,
+  default is a curated list of common Mastodon languages
+
 ## Credits
 
 - [UlionTse/translators](https://github.com/UlionTse/translators)

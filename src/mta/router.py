@@ -5,7 +5,7 @@ import importlib
 import os
 import re
 import time
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from threading import Lock
 from typing import Protocol, cast
@@ -39,6 +39,7 @@ BACKEND_BASE_WEIGHTS = {
     "bing": 3,
     "papago": 3,
     "reverso": 2,
+    "openai": 2,
     "mymemory": 1,
 }
 LANGUAGE_FAMILY_WEIGHTS = {
@@ -205,12 +206,18 @@ class UnsupportedLanguagePairError(RuntimeError):
 class BackendRouter:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
+        self._custom_backends: dict[str, Callable[[str, str, str, str], str]] = {}
         self.backends = self._load_backends(settings.backend_allowlist)
 
     def _load_backends(self, allowlist: tuple[str, ...]) -> list[BackendState]:
         backends: list[BackendState] = []
         ts = _translators_module()
         for backend in allowlist:
+            if backend == "openai":
+                openai_state = self._load_openai()
+                if openai_state is not None:
+                    backends.append(openai_state)
+                continue
             try:
                 languages = ts.get_languages(backend)
             except Exception:
@@ -226,6 +233,35 @@ class BackendRouter:
                 )
             )
         return backends
+
+    def _load_openai(self) -> BackendState | None:
+        if not self.settings.openai_api_key:
+            return None
+        from mta.openai_backend import OpenAIBackend
+
+        normalized = tuple(
+            normalize_language(code) for code in self.settings.openai_languages if code.strip()
+        )
+        if not normalized:
+            return None
+        openai_backend = OpenAIBackend(
+            api_key=self.settings.openai_api_key,
+            base_url=self.settings.openai_base_url,
+            model=self.settings.openai_model,
+            temperature=self.settings.openai_temperature,
+            languages=normalized,
+            max_output_tokens=self.settings.openai_max_output_tokens,
+            timeout=self.settings.backend_timeout_seconds,
+        )
+        self._custom_backends["openai"] = openai_backend.translate
+        matrix = _complete_matrix(set(normalized))
+        if not matrix:
+            return None
+        return BackendState(
+            name="openai",
+            priority_weight=BACKEND_BASE_WEIGHTS.get("openai", 1),
+            source_targets=matrix,
+        )
 
     def supported_languages(self) -> list[LanguageResponse]:
         targets_by_source: dict[str, set[str]] = {}
@@ -378,6 +414,9 @@ class BackendRouter:
         raise UnsupportedLanguagePairError(f"unsupported language pair: {source} -> {target}")
 
     def _call_backend(self, backend: str, text: str, source: str, target: str, format_: str) -> str:
+        custom = self._custom_backends.get(backend)
+        if custom is not None:
+            return custom(text, source, target, format_)
         ts = _translators_module()
         normalized_source = "auto" if source == "auto" else source
         if format_ == "html":

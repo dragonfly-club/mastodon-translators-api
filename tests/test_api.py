@@ -51,6 +51,12 @@ def build_client() -> tuple[AsyncClient, FakeRouter]:
         backend_cooldown_seconds=30,
         backend_timeout_seconds=15,
         backend_allowlist=("google",),
+        openai_api_key=None,
+        openai_base_url="https://api.openai.com/v1",
+        openai_model="gpt-4o-mini",
+        openai_temperature=0.0,
+        openai_languages=("en", "fr"),
+        openai_max_output_tokens=2048,
     )
     router = FakeRouter()
     app = create_app(settings=settings, router=router, cache=LRUCache(maxsize=16))
