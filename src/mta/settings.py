@@ -18,6 +18,10 @@ DEFAULT_OPENAI_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 DEFAULT_OPENAI_TEMPERATURE = 0.0
 DEFAULT_OPENAI_MAX_OUTPUT_TOKENS = 2048
+DEFAULT_OPENAI_CHAT_BASE_URL = "https://api.openai.com/v1"
+DEFAULT_OPENAI_CHAT_MODEL = "gpt-4o-mini"
+DEFAULT_OPENAI_CHAT_TEMPERATURE = 0.0
+DEFAULT_OPENAI_CHAT_MAX_TOKENS = 2048
 DEFAULT_OPENAI_LANGUAGES = (
     "ar",
     "ca",
@@ -68,6 +72,11 @@ class Settings:
     openai_temperature: float
     openai_languages: tuple[str, ...]
     openai_max_output_tokens: int
+    openai_chat_api_key: str | None
+    openai_chat_base_url: str
+    openai_chat_model: str
+    openai_chat_temperature: float
+    openai_chat_max_tokens: int
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -98,5 +107,14 @@ class Settings:
             openai_languages=openai_languages or DEFAULT_OPENAI_LANGUAGES,
             openai_max_output_tokens=int(
                 os.getenv("OPENAI_MAX_OUTPUT_TOKENS", str(DEFAULT_OPENAI_MAX_OUTPUT_TOKENS))
+            ),
+            openai_chat_api_key=os.getenv("OPENAI_CHAT_API_KEY"),
+            openai_chat_base_url=os.getenv("OPENAI_CHAT_BASE_URL", DEFAULT_OPENAI_CHAT_BASE_URL),
+            openai_chat_model=os.getenv("OPENAI_CHAT_MODEL", DEFAULT_OPENAI_CHAT_MODEL),
+            openai_chat_temperature=float(
+                os.getenv("OPENAI_CHAT_TEMPERATURE", str(DEFAULT_OPENAI_CHAT_TEMPERATURE))
+            ),
+            openai_chat_max_tokens=int(
+                os.getenv("OPENAI_CHAT_MAX_TOKENS", str(DEFAULT_OPENAI_CHAT_MAX_TOKENS))
             ),
         )

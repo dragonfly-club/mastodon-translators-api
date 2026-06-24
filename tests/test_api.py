@@ -57,6 +57,11 @@ def build_client() -> tuple[AsyncClient, FakeRouter]:
         openai_temperature=0.0,
         openai_languages=("en", "fr"),
         openai_max_output_tokens=2048,
+        openai_chat_api_key=None,
+        openai_chat_base_url="https://api.openai.com/v1",
+        openai_chat_model="gpt-4o-mini",
+        openai_chat_temperature=0.0,
+        openai_chat_max_tokens=2048,
     )
     router = FakeRouter()
     app = create_app(settings=settings, router=router, cache=LRUCache(maxsize=16))

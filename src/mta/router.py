@@ -40,6 +40,7 @@ BACKEND_BASE_WEIGHTS = {
     "papago": 3,
     "reverso": 2,
     "openai": 2,
+    "openai-chat": 2,
     "mymemory": 1,
 }
 LANGUAGE_FAMILY_WEIGHTS = {
@@ -218,6 +219,11 @@ class BackendRouter:
                 if openai_state is not None:
                     backends.append(openai_state)
                 continue
+            if backend == "openai-chat":
+                openai_chat_state = self._load_openai_chat()
+                if openai_chat_state is not None:
+                    backends.append(openai_chat_state)
+                continue
             try:
                 languages = ts.get_languages(backend)
             except Exception:
@@ -260,6 +266,35 @@ class BackendRouter:
         return BackendState(
             name="openai",
             priority_weight=BACKEND_BASE_WEIGHTS.get("openai", 1),
+            source_targets=matrix,
+        )
+
+    def _load_openai_chat(self) -> BackendState | None:
+        if not self.settings.openai_chat_api_key:
+            return None
+        from mta.openai_chat_backend import OpenAIChatBackend
+
+        normalized = tuple(
+            normalize_language(code) for code in self.settings.openai_languages if code.strip()
+        )
+        if not normalized:
+            return None
+        openai_chat_backend = OpenAIChatBackend(
+            api_key=self.settings.openai_chat_api_key,
+            base_url=self.settings.openai_chat_base_url,
+            model=self.settings.openai_chat_model,
+            temperature=self.settings.openai_chat_temperature,
+            languages=normalized,
+            max_tokens=self.settings.openai_chat_max_tokens,
+            timeout=self.settings.backend_timeout_seconds,
+        )
+        self._custom_backends["openai-chat"] = openai_chat_backend.translate
+        matrix = _complete_matrix(set(normalized))
+        if not matrix:
+            return None
+        return BackendState(
+            name="openai-chat",
+            priority_weight=BACKEND_BASE_WEIGHTS.get("openai-chat", 1),
             source_targets=matrix,
         )
 
