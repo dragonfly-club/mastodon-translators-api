@@ -36,9 +36,9 @@ class FakeRouter:
         source: str,
         target: str,
         format_: str,
-    ) -> tuple[str, DetectedLanguage]:
+    ) -> tuple[str, DetectedLanguage, str]:
         self.calls.append((text, source, target, format_))
-        return (f"{text}:{target}", DetectedLanguage(language="en", confidence=99.0))
+        return (f"{text}:{target}", DetectedLanguage(language="en", confidence=99.0), "google")
 
 
 def build_client() -> tuple[AsyncClient, FakeRouter]:

@@ -24,6 +24,7 @@ class TranslateResponse(BaseModel):
 
     translated_text: str | list[str] = Field(alias="translatedText")
     detected_language: DetectedLanguage | list[DetectedLanguage] = Field(alias="detectedLanguage")
+    translator: str | list[str | None] | None = Field(default=None, alias="translator")
 
 
 class LanguageResponse(BaseModel):

@@ -327,7 +327,7 @@ class BackendRouter:
         source: str,
         target: str,
         format_: str,
-    ) -> tuple[str, DetectedLanguage]:
+    ) -> tuple[str, DetectedLanguage, str]:
         attempts = 0
         attempted_backends: set[str] = set()
         last_error: Exception | None = None
@@ -365,7 +365,11 @@ class BackendRouter:
                 backend.mark_failure(self.settings.backend_cooldown_seconds)
             else:
                 backend.mark_success()
-                return translated, detected or DetectedLanguage(language="auto", confidence=None)
+                return (
+                    translated,
+                    detected or DetectedLanguage(language="auto", confidence=None),
+                    backend.name,
+                )
             finally:
                 backend.end()
 

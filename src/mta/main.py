@@ -22,7 +22,7 @@ from mta.settings import Settings
 
 type FormPayload = dict[str, str | int | list[str]]
 type JsonPayload = dict[str, object]
-type TranslateCache = LRUCache[tuple[str, str, str, str], tuple[str, DetectedLanguage]]
+type TranslateCache = LRUCache[tuple[str, str, str, str], tuple[str, DetectedLanguage, str]]
 
 
 class RouterLike(Protocol):
@@ -34,7 +34,7 @@ class RouterLike(Protocol):
         source: str,
         target: str,
         format_: str,
-    ) -> tuple[str, DetectedLanguage]: ...
+    ) -> tuple[str, DetectedLanguage, str]: ...
 
 
 def _normalize_q(raw_q: object) -> str | list[str]:
@@ -145,14 +145,16 @@ def create_app(
                     {
                         "translatedText": payload.q,
                         "detectedLanguage": [item.model_dump() for item in detected_items],
+                        "translator": [None for _ in payload.q],
                     }
                 )
             return TranslateResponse(
                 translatedText=payload.q,
                 detectedLanguage=DetectedLanguage(language=source, confidence=100.0),
+                translator=None,
             )
 
-        async def translate_item(item: str) -> tuple[str, DetectedLanguage]:
+        async def translate_item(item: str) -> tuple[str, DetectedLanguage, str]:
             key = _cache_key(item, source, target, format_)
             cached = cache_state.get(key)
             if cached is not None:
@@ -169,21 +171,25 @@ def create_app(
         if isinstance(payload.q, list):
             translated: list[str] = []
             detected_languages: list[DetectedLanguage] = []
+            translators: list[str | None] = []
             for item in payload.q:
-                translated_item, detected_item = await translate_item(item)
+                translated_item, detected_item, translator_item = await translate_item(item)
                 translated.append(translated_item)
                 detected_languages.append(detected_item)
+                translators.append(translator_item)
             return TranslateResponse.model_validate(
                 {
                     "translatedText": translated,
                     "detectedLanguage": [item.model_dump() for item in detected_languages],
+                    "translator": translators,
                 }
             )
 
-        translated_text, detected_language = await translate_item(payload.q)
+        translated_text, detected_language, translator_name = await translate_item(payload.q)
         return TranslateResponse(
             translatedText=translated_text,
             detectedLanguage=detected_language,
+            translator=translator_name,
         )
 
     return app

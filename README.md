@@ -34,7 +34,8 @@ A successful response looks like:
   "detectedLanguage": [
     {"language": "zh-CN", "confidence": 98.7},
     {"language": "zh-CN", "confidence": 99.1}
-  ]
+  ],
+  "translator": ["google", "google"]
 }
 ```
 
